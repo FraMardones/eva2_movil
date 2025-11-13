@@ -6,9 +6,10 @@ import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "pets")
 data class Pet(
-    // Room necesita esto para compilar, aunque los datos vengan del backend
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    // --- CAMBIO: De Int a Int? ---
+    // Permitimos que el ID sea nulo para los inserts
+    val id: Int? = null,
 
     val name: String,
     val species: String,
@@ -17,8 +18,6 @@ data class Pet(
     val weight: String,
     val imageUri: String? = null,
 
-    // Esta lista se llena automáticamente desde el JSON del backend ("vaccineRecords")
-    // Y Room la guarda usando tu archivo Converters.kt existente
     @SerializedName("vaccineRecords")
     val vaccines: List<VaccineRecord> = emptyList()
 )

@@ -6,10 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.patas_y_colas.model.Pet
-import com.example.patas_y_colas.model.VaccineRecord
+// import com.example.patas_y_colas.model.VaccineRecord // <--- BORRAMOS ESTE IMPORT
 
-@Database(entities = [Pet::class, VaccineRecord::class], version = 3, exportSchema = false) // <-- CAMBIA A VERSIÓN 3 Y AÑADE VACCINERECORD
-@TypeConverters(Converters::class) // <-- AÑADE ESTA LÍNEA
+// --- CORRECCIÓN AQUÍ: Eliminamos VaccineRecord::class de la lista de entidades ---
+@Database(entities = [Pet::class], version = 1, exportSchema = false)
+@TypeConverters(Converters::class)
 abstract class PetDatabase : RoomDatabase() {
 
     abstract fun petDao(): PetDao
@@ -25,7 +26,7 @@ abstract class PetDatabase : RoomDatabase() {
                     PetDatabase::class.java,
                     "pet_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration() // Asegúrate de tener esto si cambias la estructura
                     .build()
                 INSTANCE = instance
                 instance
@@ -33,4 +34,3 @@ abstract class PetDatabase : RoomDatabase() {
         }
     }
 }
-

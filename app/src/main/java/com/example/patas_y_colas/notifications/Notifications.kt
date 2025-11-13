@@ -12,7 +12,6 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.example.patas_y_colas.R
 import com.example.patas_y_colas.model.Pet
-import com.example.patas_y_colas.model.VaccineRecord
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,13 +55,11 @@ object NotificationScheduler {
     fun scheduleNotifications(context: Context, pet: Pet) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // CORRECCIÓN: Usamos la lista directa, ya no parseamos JSON con Gson
         val vaccines = pet.vaccines
 
         cancelNotificationsForPet(context, pet)
 
         vaccines.forEach { vaccine ->
-            // Validamos que la fecha no sea nula o vacía antes de intentar parsearla
             if (!vaccine.date.isNullOrBlank()) {
                 val sdf = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
                 try {
@@ -81,8 +78,9 @@ object NotificationScheduler {
                                 putExtra("VACCINE_NAME", vaccine.vaccineName)
                             }
 
-                            // Nota: Asegúrate de que VaccineRecord tenga 'id'. Si no, usa vaccine.hashCode()
-                            val requestCode = pet.id + (vaccine.id ?: vaccine.hashCode())
+                            // --- CORRECCIÓN LÍNEA 85 ---
+                            // Usamos (pet.id ?: 0) para manejar el ID nulo de la mascota
+                            val requestCode = (pet.id ?: 0) + (vaccine.id ?: vaccine.hashCode())
 
                             val pendingIntent = PendingIntent.getBroadcast(
                                 context,
@@ -103,13 +101,13 @@ object NotificationScheduler {
     fun cancelNotificationsForPet(context: Context, pet: Pet) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // CORRECCIÓN: Usamos la lista directa
         val vaccines = pet.vaccines
 
         vaccines.forEach { vaccine ->
             val intent = Intent(context, NotificationReceiver::class.java)
 
-            val requestCode = pet.id + (vaccine.id ?: vaccine.hashCode())
+            // --- CORRECCIÓN LÍNEA 111 (aprox) ---
+            val requestCode = (pet.id ?: 0) + (vaccine.id ?: vaccine.hashCode())
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context,

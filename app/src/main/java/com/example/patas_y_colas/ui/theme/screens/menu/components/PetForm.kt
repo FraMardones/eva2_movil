@@ -130,7 +130,7 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
                 }
                 Button(
                     onClick = {
-                        // --- NUEVA VALIDACIÓN ---
+                        // --- VALIDACIÓN DE SESIÓN ---
                         if (TokenManager.getToken(context) == null) {
                             Toast.makeText(context, "Debes iniciar sesión para guardar", Toast.LENGTH_LONG).show()
                         } else {
@@ -138,8 +138,9 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
                             if (validate()) {
                                 val finalSpecies = if (speciesOption == "Otro") otherSpecies else speciesOption
 
+                                // --- CORRECCIÓN 1: Enviar 'null' si la mascota es nueva ---
                                 val petToSave = Pet(
-                                    id = pet?.id ?: 0,
+                                    id = pet?.id, // <- No uses '?: 0'
                                     name = name,
                                     species = finalSpecies,
                                     breed = breed,
@@ -214,7 +215,8 @@ fun VaccineRegistrationDialog(initialVaccines: List<VaccineRecord>, onDismiss: (
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { vaccines.add(VaccineRecord(vaccineName = "", date = "")) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = PetSand)) { Text("Añadir Vacuna", color = PetTextDark) }
+                // --- CORRECCIÓN 2: Añadir vacuna con 'id = null' explícito ---
+                Button(onClick = { vaccines.add(VaccineRecord(id = null, vaccineName = "", date = "")) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = PetSand)) { Text("Añadir Vacuna", color = PetTextDark) }
             }
         },
         confirmButton = { Button(onClick = { onSave(vaccines.toList()) }, colors = ButtonDefaults.buttonColors(containerColor = PetTerracotta)) { Text("Guardar", color = Color.White) } },

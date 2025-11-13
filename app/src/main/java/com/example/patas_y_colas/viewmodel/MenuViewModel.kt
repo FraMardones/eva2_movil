@@ -17,20 +17,27 @@ class MenuViewModel(
     private val application: Application
 ) : ViewModel() {
 
-    val allPets: StateFlow<List<Pet>> = repository.allPets.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    // --- CAMBIO: Ahora solo nos suscribimos al StateFlow del repositorio ---
+    val allPets: StateFlow<List<Pet>> = repository.allPets
+
+    // --- NUEVO: Bloque 'init' para la carga inicial ---
+    init {
+        // Le pedimos al repositorio que cargue la lista de mascotas
+        // tan pronto como el ViewModel se cree.
+        viewModelScope.launch {
+            repository.refreshPets()
+        }
+    }
 
     fun insert(pet: Pet) = viewModelScope.launch {
+        // Ya no necesitamos 'refreshPets()' aquí, el repo lo hace solo
         repository.insert(pet)
         NotificationScheduler.scheduleNotifications(application, pet)
 
-        // --- CORRECCIÓN: Usamos la lista 'vaccines' directamente ---
-        // Verificamos si hay alguna vacuna en la lista y tomamos la última para la notificación de prueba
-        pet.vaccines.lastOrNull()?.takeIf { !it.vaccineName.isNullOrBlank() }?.let {
-            NotificationScheduler.sendTestNotification(application, pet.name, it.vaccineName)
+        pet.vaccines.lastOrNull()?.vaccineName?.let { vaccineName ->
+            if(vaccineName.isNotBlank()) {
+                NotificationScheduler.sendTestNotification(application, pet.name, vaccineName)
+            }
         }
     }
 
@@ -38,9 +45,10 @@ class MenuViewModel(
         repository.update(pet)
         NotificationScheduler.scheduleNotifications(application, pet)
 
-        // --- CORRECCIÓN: Usamos la lista 'vaccines' directamente ---
-        pet.vaccines.lastOrNull()?.takeIf { !it.vaccineName.isNullOrBlank() }?.let {
-            NotificationScheduler.sendTestNotification(application, pet.name, it.vaccineName)
+        pet.vaccines.lastOrNull()?.vaccineName?.let { vaccineName ->
+            if(vaccineName.isNotBlank()) {
+                NotificationScheduler.sendTestNotification(application, pet.name, vaccineName)
+            }
         }
     }
 

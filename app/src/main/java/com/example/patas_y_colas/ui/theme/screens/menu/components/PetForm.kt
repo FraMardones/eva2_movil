@@ -1,9 +1,10 @@
-package com.example.patas_y_colas.ui.screens.menu.components
+package com.example.patas_y_colas.ui.theme.screens.menu.components
 
 import android.Manifest
 import android.app.DatePickerDialog
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast // <--- IMPORTANTE: Necesario para el mensaje
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import com.example.patas_y_colas.data.network.TokenManager // <--- IMPORTANTE: Para verificar la sesión
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.model.VaccineRecord
 import com.example.patas_y_colas.ui.theme.*
@@ -56,7 +58,7 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
 
     var showVaccineDialog by remember { mutableStateOf(false) }
 
-    // --- CAMBIO: Carga directa desde la lista del objeto Pet ---
+    // Carga directa desde la lista del objeto Pet
     var currentVaccines by remember(pet) {
         mutableStateOf(pet?.vaccines ?: emptyList())
     }
@@ -128,21 +130,26 @@ fun PetForm(pet: Pet?, onSave: (Pet) -> Unit, onDelete: (Pet) -> Unit) {
                 }
                 Button(
                     onClick = {
-                        if (validate()) {
-                            val finalSpecies = if (speciesOption == "Otro") otherSpecies else speciesOption
+                        // --- NUEVA VALIDACIÓN ---
+                        if (TokenManager.getToken(context) == null) {
+                            Toast.makeText(context, "Debes iniciar sesión para guardar", Toast.LENGTH_LONG).show()
+                        } else {
+                            // Si hay sesión, procedemos normalmente
+                            if (validate()) {
+                                val finalSpecies = if (speciesOption == "Otro") otherSpecies else speciesOption
 
-                            // --- CAMBIO: Pasamos la lista 'currentVaccines' directamente ---
-                            val petToSave = Pet(
-                                id = pet?.id ?: 0,
-                                name = name,
-                                species = finalSpecies,
-                                breed = breed,
-                                age = age,
-                                weight = "$weight Kg",
-                                imageUri = imageUri,
-                                vaccines = currentVaccines
-                            )
-                            onSave(petToSave)
+                                val petToSave = Pet(
+                                    id = pet?.id ?: 0,
+                                    name = name,
+                                    species = finalSpecies,
+                                    breed = breed,
+                                    age = age,
+                                    weight = "$weight Kg",
+                                    imageUri = imageUri,
+                                    vaccines = currentVaccines
+                                )
+                                onSave(petToSave)
+                            }
                         }
                     },
                     modifier = Modifier.weight(1f).height(50.dp),
@@ -192,14 +199,13 @@ fun VaccineRegistrationDialog(initialVaccines: List<VaccineRecord>, onDismiss: (
 
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             OutlinedTextField(
-                                value = vaccineName ?: "", // Safe call por si es null
+                                value = vaccineName ?: "",
                                 onValueChange = { vaccineName = it; vaccines[index] = vaccines[index].copy(vaccineName = it) },
                                 label = { Text("Vacuna") },
                                 modifier = Modifier.weight(1f),
                                 colors = OutlinedTextFieldDefaults.colors(cursorColor = PetTerracotta, focusedBorderColor = PetTerracotta, unfocusedBorderColor = PetTextLight)
                             )
                             IconButton(onClick = { datePickerDialog.show() }) { Icon(Icons.Default.CalendarToday, contentDescription = "Fecha", tint = PetTextLight) }
-                            // --- BOTÓN DE ELIMINAR ---
                             IconButton(onClick = { vaccines.removeAt(index) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Eliminar Vacuna", tint = PetRed)
                             }

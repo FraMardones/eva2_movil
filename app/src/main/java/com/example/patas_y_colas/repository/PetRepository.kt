@@ -2,6 +2,7 @@ package com.example.patas_y_colas.repository
 
 import android.content.Context
 import com.example.patas_y_colas.data.network.LoginRequest
+import com.example.patas_y_colas.data.network.RegisterRequest // <--- Importante: no olvides este import
 import com.example.patas_y_colas.data.network.RetrofitClient
 import com.example.patas_y_colas.data.network.TokenManager
 import com.example.patas_y_colas.model.Pet
@@ -12,7 +13,7 @@ class PetRepository(private val context: Context) {
 
     private val api = RetrofitClient.getClient(context)
 
-    // Login
+    // --- Login ---
     suspend fun login(email: String, pass: String): Boolean {
         return try {
             val response = api.login(LoginRequest(email, pass))
@@ -28,17 +29,43 @@ class PetRepository(private val context: Context) {
         }
     }
 
-    // Obtener mascotas (Ahora viene de la API)
+    // --- Registro (Nueva función) ---
+    suspend fun register(nombre: String, apellido: String, email: String, pass: String): Boolean {
+        return try {
+            val request = RegisterRequest(
+                firstname = nombre,
+                lastname = apellido,
+                email = email,
+                password = pass
+            )
+            val response = api.register(request)
+            if (response.isSuccessful && response.body() != null) {
+                // Guardamos el token automáticamente para que el usuario entre directo
+                TokenManager.saveToken(context, response.body()!!.token)
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // --- Obtener mascotas (Viene de la API) ---
     val allPets: Flow<List<Pet>> = flow {
         try {
             val petsFromApi = api.getAllPets()
             emit(petsFromApi)
         } catch (e: Exception) {
             e.printStackTrace()
-            emit(emptyList()) // En caso de error, lista vacía o manejar caché local
+            // En caso de error (sin internet), emitimos lista vacía.
+            // Aquí podrías implementar lógica para cargar de Room si quisieras modo offline.
+            emit(emptyList())
         }
     }
 
+    // --- Crear mascota ---
     suspend fun insert(pet: Pet) {
         try {
             api.createPet(pet)
@@ -47,6 +74,7 @@ class PetRepository(private val context: Context) {
         }
     }
 
+    // --- Actualizar mascota ---
     suspend fun update(pet: Pet) {
         try {
             api.updatePet(pet.id, pet)
@@ -55,6 +83,7 @@ class PetRepository(private val context: Context) {
         }
     }
 
+    // --- Eliminar mascota ---
     suspend fun delete(pet: Pet) {
         try {
             api.deletePet(pet.id)

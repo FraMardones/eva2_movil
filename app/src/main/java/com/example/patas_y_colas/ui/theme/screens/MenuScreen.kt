@@ -1,4 +1,4 @@
-package com.example.patas_y_colas.ui.screens
+package com.example.patas_y_colas.ui.theme.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -25,7 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patas_y_colas.PetApplication
 import com.example.patas_y_colas.model.Pet
 import com.example.patas_y_colas.ui.screens.menu.components.HeaderSection
-import com.example.patas_y_colas.ui.screens.menu.components.PetForm
+import com.example.patas_y_colas.ui.theme.screens.menu.components.PetForm
 import com.example.patas_y_colas.ui.theme.*
 import com.example.patas_y_colas.ui.utils.rememberWindowSizeClass
 import com.example.patas_y_colas.viewmodel.MenuViewModel
